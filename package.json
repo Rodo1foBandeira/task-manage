@@ -9,16 +9,28 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^6.1.0",
+    "@mui/material": "^6.1.0",
+    "@types/lodash": "^4.17.9",
+    "lodash": "^4.17.21",
+    "mariadb": "^3.3.2",
+    "next": "14.2.11",
+    "next-superjson-plugin": "^0.6.3",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.11"
+    "sequelize": "^6.37.3",
+    "sequelize-cli": "^6.6.2",
+    "superjson": "^2.2.1"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/sequelize": "^4.28.20",
     "eslint": "^8",
-    "eslint-config-next": "14.2.11"
+    "eslint-config-next": "14.2.11",
+    "typescript": "^5.6.2"
   }
 }
