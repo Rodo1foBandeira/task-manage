@@ -26,6 +26,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - Create your database. Is recommended mariadb or mysql.
 - In `/config/config.json` changes your database connnection.
 - `npx sequelize-cli db:migrate`
+- In `src/models/index.ts` changes your database connnection.
 
 
 ## Learn More
