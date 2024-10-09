@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FocusEvent, useEffect, useState } from "react";
 import ClearIcon from "@mui/icons-material/Clear";
 import { IProjetoProps } from "@/models/projeto";
 import * as actionsCliente from "@/lib/data/actionsCliente";
@@ -88,7 +88,7 @@ export default function Form() {
     }
   };
 
-  const handleBlur = (e, setVar: (v: IOption) => void, estado: IOption) => {
+  const handleBlur = (e: FocusEvent<HTMLInputElement>, setVar: (v: IOption) => void, estado: IOption) => {
     if (e.target.value !== estado.nome) {
       setVar({ id: undefined, nome: e.target.value });
     }
@@ -189,7 +189,7 @@ export default function Form() {
             }}
             renderInput={(params) => <TextField {...params} label={autocompleteLabel(cliente, "Cliente")} />}
             onChange={(e, v) => handleChange(e, v, setCliente)}
-            onBlur={(e) => handleBlur(e, setCliente, cliente)}
+            onBlur={(e) => handleBlur(e as FocusEvent<HTMLInputElement>, setCliente, cliente)}
             disabled={desabilitaAutocomplete()}
           />
         </Grid2>
@@ -207,7 +207,7 @@ export default function Form() {
             }}
             renderInput={(params) => <TextField {...params} label={autocompleteLabel(projeto, "Projeto")} />}
             onChange={(e, v) => handleChange(e, v, setProjeto)}
-            onBlur={(e) => handleBlur(e, setProjeto, projeto)}
+            onBlur={(e) => handleBlur(e as FocusEvent<HTMLInputElement>, setProjeto, projeto)}
             disabled={desabilitaAutocomplete()}
           />
         </Grid2>

@@ -9,6 +9,6 @@ export interface IHistoricoProps extends IBaseProps {
 
 export interface IHistoricoInstance extends IHistoricoProps, Model {}
 
-export const HistoricoModelOptios = {
+export const historicoModelOptios = {
   observacao: DataTypes.STRING,
 } as ModelAttributes<IHistoricoInstance>;

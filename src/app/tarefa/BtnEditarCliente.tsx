@@ -10,11 +10,6 @@ export default function BtnEditarCliente({ clienteId }: { clienteId: number }) {
   const { replace } = useRouter();
   const searchParams = useSearchParams();
 
-  const tarefasExpandidas = {
-    1: { editandoHistorico: 9 },
-    3: { editandoHistorico: 15 },
-  }
-
   const setEditarCliente = () => {
     const params = new URLSearchParams(searchParams);
     params.delete(UrlParamsEnum.CriarTarefaPorPrj);

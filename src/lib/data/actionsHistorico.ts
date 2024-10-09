@@ -5,13 +5,22 @@ import { cacheList, cacheObj } from "./utils";
 import sequelize from "@/models";
 import RevalTagsEnum from "../enums/RevalTagsEnum";
 import { revalidateTag } from "next/cache";
+import { getServerSession } from "next-auth";
+import authOptions from "@/authOptions";
 
 export async function porTarefa(tarefaId: number) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session || !session.user?.email) {
+    throw new Error("Usuário não autenticado");
+  }
+
   const result = await cacheList<IHistoricoProps>(
     () =>
       sequelize.Historico.findAll({
         where: {
           tarefa_id: tarefaId,
+          usuario_id: session.id
         },
       }),
     ["actionsHistorico.porTarefa", tarefaId.toString()],

@@ -2,7 +2,8 @@ enum RevalTagsEnum {
     Clientes = "clientes",
     Projetos = "projetos",
     Tarefas = "tarefas",
-    Historicos = "historicos"
+    Historicos = "historicos",
+    Usuarios = "usuarios"
 }
 
 export default RevalTagsEnum;

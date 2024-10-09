@@ -13,7 +13,7 @@ export interface ITarefaProps extends IBaseProps {
 
 export interface ITarefaInstance extends ITarefaProps, Model {}
 
-export const TarefaModelOptios = {
+export const tarefaModelOptios = {
   nome: DataTypes.STRING,
   dataIni: DataTypes.DATE,
   dataFim: DataTypes.DATE,

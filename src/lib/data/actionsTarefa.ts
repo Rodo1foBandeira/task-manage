@@ -6,6 +6,8 @@ import { cacheObj } from "./utils";
 import RevalTagsEnum from "../enums/RevalTagsEnum";
 import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import authOptions from "@/authOptions";
 
 export async function comProjetoComCliente(tarefaId: number) {
   const result = await cacheObj<ITarefaProps>(
@@ -24,13 +26,19 @@ export async function comProjetoComCliente(tarefaId: number) {
           },
         ],
       }),
-    ["actionTarefa.comProjetoComCliente", tarefaId.toString()],
+    ["actionsTarefa.comProjetoComCliente", tarefaId.toString()],
     { tags: [RevalTagsEnum.Tarefas, RevalTagsEnum.Projetos, RevalTagsEnum.Clientes] }
   );
   return result;
 }
 
 export async function criar(formData: FormData, redirectUrl?: string) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session || !session.user?.email) {
+    throw new Error("Usuário não autenticado");
+  }
+
   let persistiu = false;
   if (formData.get("tarefa.id")) {
     // Edita somente tarefa

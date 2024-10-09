@@ -1,54 +1,24 @@
-import fs from "fs";
-import path from "path";
 import { Sequelize } from "sequelize";
 import mariadb from "mariadb";
 import { IProjetoInstance, projetoModelOptios } from "./projeto";
 import { clienteModelOptions, IClienteInstance } from "./cliente";
-import { ITarefaInstance, TarefaModelOptios } from "./tarefa";
-import { HistoricoModelOptios, IHistoricoInstance } from "./historico";
-const basename = path.basename(__filename);
-// const env = process.env.NODE_ENV || 'development';
-// import config from "../config/config.json"
+import { ITarefaInstance, tarefaModelOptios } from "./tarefa";
+import { historicoModelOptios, IHistoricoInstance } from "./historico";
+import { IUsuarioInstance, usuarioModelOptios } from "./usuario";
 
-const sequelize = new Sequelize("task_manage", "remoto", "1234", {
-  dialect: "mariadb",
+const sequelize = new Sequelize(process.env.DB_TASK_MANAGE, {
   dialectModule: mariadb,
-  host: "192.168.15.7",
 });
 
-// fs.readdirSync(__dirname)
-//   .filter((file) => {
-//     return file.indexOf(".") !== 0 && file !== basename && file.slice(-3) === ".ts" && file.indexOf(".test.js") === -1;
-//   })
-//   .forEach(async (file) => {
-//     try {
-//       const model = (await import(path.join(__dirname, file))).default(sequelize, DataTypes);
-//       sequelize[model.name] = model;
-//     } catch (error) {
-//       console.error(error);
-//     }
-//   });
-
-// Object.keys(sequelize).forEach((modelName) => {
-//   try {
-//     if (sequelize[modelName].associate) {
-//       sequelize[modelName].associate(sequelize);
-//     }
-//   } catch (error) {
-//     console.error(error);
-//   }
-// });
-
-//db.sequelize = sequelize;
-//db.Sequelize = Sequelize;
-
+const _Usuario = sequelize.define<IUsuarioInstance>("Usuario", usuarioModelOptios);
 const _Cliente = sequelize.define<IClienteInstance>("Cliente", clienteModelOptions);
 const _Projeto = sequelize.define<IProjetoInstance>("Projeto", projetoModelOptios);
-const _Tarefa = sequelize.define<ITarefaInstance>("Tarefa", TarefaModelOptios);
-const _Historico = sequelize.define<IHistoricoInstance>("Historico", HistoricoModelOptios);
+const _Tarefa = sequelize.define<ITarefaInstance>("Tarefa", tarefaModelOptios);
+const _Historico = sequelize.define<IHistoricoInstance>("Historico", historicoModelOptios);
 
 declare module "sequelize" {
   interface Sequelize {
+    Usuario: typeof _Usuario;
     Cliente: typeof _Cliente;
     Projeto: typeof _Projeto;
     Tarefa: typeof _Tarefa;
@@ -56,16 +26,30 @@ declare module "sequelize" {
   }
 }
 
+sequelize.Usuario = _Usuario;
 sequelize.Cliente = _Cliente;
 sequelize.Projeto = _Projeto;
 sequelize.Tarefa = _Tarefa;
 sequelize.Historico = _Historico;
 
+sequelize.Usuario.hasMany(_Cliente, { foreignKey: "usuario_id" });
+sequelize.Cliente.belongsTo(_Usuario, { foreignKey: "usuario_id", as: "Usuario" });
 sequelize.Cliente.hasMany(_Projeto, { foreignKey: "cliente_id" });
 sequelize.Projeto.belongsTo(_Cliente, { foreignKey: "cliente_id", as: "Cliente" });
 sequelize.Projeto.hasMany(_Tarefa, { foreignKey: "projeto_id" });
 sequelize.Tarefa.belongsTo(_Projeto, { foreignKey: "projeto_id", as: "Projeto" });
 sequelize.Tarefa.hasMany(_Historico, { foreignKey: "tarefa_id" });
 sequelize.Historico.belongsTo(_Tarefa, { foreignKey: "tarefa_id" });
+
+async function testConnection() {
+  try {
+    await sequelize.authenticate();
+    console.log("Conexão com o banco de dados estabelecida com sucesso.");
+  } catch (error) {
+    console.error("Erro ao conectar ao banco de dados:", error);
+  }
+}
+
+testConnection();
 
 export default sequelize;
