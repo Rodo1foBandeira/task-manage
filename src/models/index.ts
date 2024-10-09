@@ -35,11 +35,14 @@ sequelize.Historico = _Historico;
 sequelize.Usuario.hasMany(_Cliente, { foreignKey: "usuario_id" });
 sequelize.Cliente.belongsTo(_Usuario, { foreignKey: "usuario_id", as: "Usuario" });
 sequelize.Cliente.hasMany(_Projeto, { foreignKey: "cliente_id" });
+sequelize.Projeto.belongsTo(_Usuario, { foreignKey: "usuario_id", as: "Usuario" });
 sequelize.Projeto.belongsTo(_Cliente, { foreignKey: "cliente_id", as: "Cliente" });
 sequelize.Projeto.hasMany(_Tarefa, { foreignKey: "projeto_id" });
+sequelize.Tarefa.belongsTo(_Usuario, { foreignKey: "usuario_id", as: "Usuario" });
 sequelize.Tarefa.belongsTo(_Projeto, { foreignKey: "projeto_id", as: "Projeto" });
 sequelize.Tarefa.hasMany(_Historico, { foreignKey: "tarefa_id" });
-sequelize.Historico.belongsTo(_Tarefa, { foreignKey: "tarefa_id" });
+sequelize.Historico.belongsTo(_Usuario, { foreignKey: "usuario_id", as: "Usuario" });
+sequelize.Historico.belongsTo(_Tarefa, { foreignKey: "tarefa_id", as: "Tarefa" });
 
 async function testConnection() {
   try {

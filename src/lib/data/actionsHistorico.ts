@@ -40,10 +40,16 @@ export async function get(id: number) {
 }
 
 export async function criar(formData: FormData) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session || !session?.id) {
+    throw new Error("Usuário não autenticado");
+  }
+
   if (formData.get("historico.id")) {
     await sequelize.Historico.update({ observacao: formData.get("historico.observacao") }, { where: { id: formData.get("historico.id") } });
   } else {
-    await sequelize.Historico.create({ observacao: formData.get("historico.observacao"), tarefa_id: formData.get("historico.tarefaId") });
+    await sequelize.Historico.create({ usuario_id: session.id, observacao: formData.get("historico.observacao"), tarefa_id: formData.get("historico.tarefaId") });
   }
   revalidateTag(RevalTagsEnum.Historicos);
 }
