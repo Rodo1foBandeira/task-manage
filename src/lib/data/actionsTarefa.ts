@@ -35,7 +35,7 @@ export async function comProjetoComCliente(tarefaId: number) {
 export async function criar(formData: FormData, redirectUrl?: string) {
   const session = await getServerSession(authOptions);
   
-  if (!session || !session.user?.email) {
+  if (!session || !session?.id) {
     throw new Error("Usuário não autenticado");
   }
 
@@ -53,7 +53,7 @@ export async function criar(formData: FormData, redirectUrl?: string) {
     let clienteId = Number(formData.get("cliente.id")?.toString());
     if (!clienteId){
       const nome = formData.get("cliente.nome")?.toString() || "";
-      const cliente = await sequelize.Cliente.create({ nome });
+      const cliente = await sequelize.Cliente.create({ nome, usuario_id: session.id });
       clienteId = cliente.id;
       revalidateTag(RevalTagsEnum.Clientes);
     }
@@ -61,12 +61,12 @@ export async function criar(formData: FormData, redirectUrl?: string) {
     let projetoId = Number(formData.get("projeto.id")?.toString());
     if (!projetoId){
       const nome = formData.get("projeto.nome")?.toString() || "";
-      const projeto = await sequelize.Projeto.create({ nome, cliente_id: clienteId });
+      const projeto = await sequelize.Projeto.create({ nome, cliente_id: clienteId, usuario_id: session.id });
       projetoId = projeto.id;
       revalidateTag(RevalTagsEnum.Projetos);
     }
     const nome = formData.get("tarefa.nome")?.toString() || "";
-    const tarefa = await sequelize.Tarefa.create({ nome, projeto_id: projetoId })
+    const tarefa = await sequelize.Tarefa.create({ nome, projeto_id: projetoId, usuario_id: session.id })
     persistiu = true;
   }
   if (persistiu) {
