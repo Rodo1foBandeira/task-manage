@@ -148,8 +148,10 @@ export default function Form() {
       if (cliente.id) form.append("cliente.id", cliente.id?.toString());
       else form.append("cliente.nome", cliente.nome);
     }
+    setLoading(true);
     await actionsTarefa.criar(form);
     limparCancelar();
+    setLoading(false);
     //router.push("/tarefa")
   };
 
