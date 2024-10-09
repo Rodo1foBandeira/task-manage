@@ -2,7 +2,7 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const protectedRoutes = ["/tarefa"];
+const protectedRoutes = ["/tarefa", "api/utils"];
 
 export async function middleware(req: NextRequest) {
   // Obter o token JWT de sessão
