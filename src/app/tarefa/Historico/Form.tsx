@@ -65,7 +65,7 @@ export default function Form({ tarefaId }: { tarefaId: number }) {
   };
 
   return (
-    <form action={handleAction}>
+    <form onSubmit={handleAction}>
       <Grid2 container spacing={2}>
         <Grid2 size={1} sx={{ width: "31px" }}>{loading && <CircularProgress size={30} />}</Grid2>
         <Grid2 size={{ lg: 7, md: 6 }}>
