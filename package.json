@@ -19,7 +19,6 @@
     "@types/lodash": "^4.17.9",
     "@vercel/postgres": "^0.10.0",
     "lodash": "^4.17.21",
-    "mariadb": "^3.3.2",
     "next": "14.2.11",
     "next-auth": "^4.24.8",
     "pg": "^8.13.0",
