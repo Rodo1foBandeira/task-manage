@@ -2,14 +2,14 @@
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["sequelize"],
-    swcPlugins: [
-      [
-        'next-superjson-plugin',
-        {
-          excluded: [],
-        },
-      ],
-    ],
+    // swcPlugins: [
+    //   [
+    //     'next-superjson-plugin',
+    //     {
+    //       excluded: [],
+    //     },
+    //   ],
+    // ],
   },
 };
 
