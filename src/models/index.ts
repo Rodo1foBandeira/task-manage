@@ -5,13 +5,13 @@ import { clienteModelOptions, IClienteInstance } from "./cliente";
 import { ITarefaInstance, tarefaModelOptios } from "./tarefa";
 import { historicoModelOptios, IHistoricoInstance } from "./historico";
 import { IUsuarioInstance, usuarioModelOptios } from "./usuario";
+import * as pg from 'pg';
 
 // const sequelize = new Sequelize(process.env.DB_TASK_MANAGE, {
 //   dialectModule: mariadb,
 // });
 const sequelize = new Sequelize(process.env.POSTGRES_URL, {
-  dialect: 'postgres',
-  protocol: 'postgres',
+  dialectModule: pg,
   dialectOptions: {
     ssl: {
       require: true,
