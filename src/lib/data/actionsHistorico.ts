@@ -10,8 +10,8 @@ import authOptions from "@/authOptions";
 
 export async function porTarefa(tarefaId: number) {
   const session = await getServerSession(authOptions);
-  
-  if (!session || !session.user?.email) {
+
+  if (!session || !session.id) {
     throw new Error("Usuário não autenticado");
   }
 
@@ -20,7 +20,7 @@ export async function porTarefa(tarefaId: number) {
       sequelize.Historico.findAll({
         where: {
           tarefa_id: tarefaId,
-          usuario_id: session.id
+          usuario_id: session.id,
         },
       }),
     ["actionsHistorico.porTarefa", tarefaId.toString()],
@@ -30,31 +30,39 @@ export async function porTarefa(tarefaId: number) {
 }
 
 export async function get(id: number) {
-  const result = await cacheObj<IHistoricoProps>(
-    () =>
-      sequelize.Historico.findByPk(id),
-    ["actionsHistorico.get", id.toString()],
-    { tags: [RevalTagsEnum.Historicos] }
-  );
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.id) {
+    throw new Error("Usuário não autenticado");
+  }
+  const result = await cacheObj<IHistoricoProps>(() => sequelize.Historico.findOne({ where: { id, usuario_id: session.id } }), ["actionsHistorico.get", id.toString()], {
+    tags: [RevalTagsEnum.Historicos],
+  });
   return result;
 }
 
-export async function criar(formData: FormData) {
+export async function criarEditar({ observacao, id, tarefa_id }: { observacao: string; id?: number; tarefa_id?: number }) {
   const session = await getServerSession(authOptions);
-  
+
   if (!session || !session?.id) {
     throw new Error("Usuário não autenticado");
   }
 
-  if (formData.get("historico.id")) {
-    await sequelize.Historico.update({ observacao: formData.get("historico.observacao") }, { where: { id: formData.get("historico.id") } });
+  if (id) {
+    await sequelize.Historico.update({ observacao }, { where: { id } });
   } else {
-    await sequelize.Historico.create({ usuario_id: session.id, observacao: formData.get("historico.observacao"), tarefa_id: formData.get("historico.tarefaId") });
+    await sequelize.Historico.create({ usuario_id: session.id, observacao, tarefa_id });
   }
   revalidateTag(RevalTagsEnum.Historicos);
 }
 
-export async function excluir(historicoId: number) {
-  await sequelize.Historico.destroy({ where: { id: historicoId } });
+export async function excluir(id: number) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session?.id) {
+    throw new Error("Usuário não autenticado");
+  }
+
+  await sequelize.Historico.destroy({ where: { id, usuario_id: session.id } });
   revalidateTag(RevalTagsEnum.Historicos);
 }

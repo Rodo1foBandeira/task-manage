@@ -1,6 +1,6 @@
 "use client";
 import { Button, CircularProgress, Grid2, IconButton, TextField } from "@mui/material";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import ClearIcon from "@mui/icons-material/Clear";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UrlParamsEnum } from "../ISearchParams";
@@ -51,14 +51,17 @@ export default function Form({ tarefaId }: { tarefaId: number }) {
     return !obs.observacao;
   };
 
-  const handleAction = async () => {
+  const handleAction = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoading(true);
     const form = new FormData();
     form.append("historico.observacao", obs.observacao);
     form.append("historico.tarefaId", tarefaId.toString());
     if (obs.id) form.append("historico.id", obs.id.toString());
 
-    await actionsHistorico.criar(form);
+    await actionsHistorico.criarEditar({...obs, tarefa_id: tarefaId});
     limparCancelar();
+    setLoading(false);
   };
 
   return (

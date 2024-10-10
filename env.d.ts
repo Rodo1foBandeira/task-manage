@@ -6,6 +6,7 @@ declare global {
         GOOGLE_CLIENT_SECRET: string;
         AUTH_SECRET: string;
         NEXTAUTH_URL: string;
+        POSTGRES_URL: string;
       }
     }
   }

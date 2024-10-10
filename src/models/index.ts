@@ -1,13 +1,23 @@
 import { Sequelize } from "sequelize";
-import mariadb from "mariadb";
+//import mariadb from "mariadb";
 import { IProjetoInstance, projetoModelOptios } from "./projeto";
 import { clienteModelOptions, IClienteInstance } from "./cliente";
 import { ITarefaInstance, tarefaModelOptios } from "./tarefa";
 import { historicoModelOptios, IHistoricoInstance } from "./historico";
 import { IUsuarioInstance, usuarioModelOptios } from "./usuario";
 
-const sequelize = new Sequelize(process.env.DB_TASK_MANAGE, {
-  dialectModule: mariadb,
+// const sequelize = new Sequelize(process.env.DB_TASK_MANAGE, {
+//   dialectModule: mariadb,
+// });
+const sequelize = new Sequelize(process.env.POSTGRES_URL, {
+  dialect: 'postgres',
+  protocol: 'postgres',
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false, // Necessário para conexões SSL
+    },
+  },
 });
 
 const _Usuario = sequelize.define<IUsuarioInstance>("Usuario", usuarioModelOptios);

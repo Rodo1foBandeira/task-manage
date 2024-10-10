@@ -1,6 +1,6 @@
 "use client";
 
-import { FocusEvent, useEffect, useState } from "react";
+import { FocusEvent, FormEvent, useEffect, useState } from "react";
 import ClearIcon from "@mui/icons-material/Clear";
 import { IProjetoProps } from "@/models/projeto";
 import * as actionsCliente from "@/lib/data/actionsCliente";
@@ -9,7 +9,6 @@ import * as actionsTarefa from "@/lib/data/actionsTarefa";
 import { Autocomplete, Button, CircularProgress, Grid2, IconButton, TextField } from "@mui/material";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ISearchParams, UrlParamsEnum } from "./ISearchParams";
-import { objToURLSearchParams } from "@/lib/utils";
 import { isEqual } from "lodash";
 
 export default function Form() {
@@ -138,7 +137,9 @@ export default function Form() {
     setTarefa({ id: undefined, nome: "" });
   };
 
-  const handleAction = async () => {
+  const handleAction = async (event: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    setLoading(true);
     const form = new FormData();
     form.append("tarefa.nome", tarefa.nome);
     if (tarefa.id) form.append("tarefa.id", tarefa.id?.toString());
@@ -147,8 +148,7 @@ export default function Form() {
       else form.append("projeto.nome", projeto.nome);
       if (cliente.id) form.append("cliente.id", cliente.id?.toString());
       else form.append("cliente.nome", cliente.nome);
-    }
-    setLoading(true);
+    }    
     await actionsTarefa.criar(form);
     limparCancelar();
     setLoading(false);
@@ -174,7 +174,7 @@ export default function Form() {
   const autocompleteLabel = (option: IOption, entidade: string, ) => option.id ? `${entidade} selecionado` : `Novo ${entidade}`;
 
   return (
-    <form action={handleAction}>
+    <form onSubmit={handleAction}>
       <Grid2 container spacing={2}>
         <Grid2 sx={{ width: "31px" }}>{loading && <CircularProgress size={30} />}</Grid2>
         <Grid2 size={2}>
