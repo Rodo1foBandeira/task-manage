@@ -5,22 +5,29 @@ import EditIcon from "@mui/icons-material/Edit";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UrlParamsEnum } from "./ISearchParams";
 
-export default function BtnEditarPrj({ prjId }: { prjId: number }) {
+export default function BtnEditar({ id, entidade }: { id: number, entidade: "Cliente" | "Projeto" | "Tarefa" }) {
   const pathname = usePathname();
   const { replace } = useRouter();
   const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams);
 
-  const setEditarPrj = () => {
-    const params = new URLSearchParams(searchParams);
+  const entidades: Record<string, string> = {
+    Cliente: UrlParamsEnum.EditarCliente,
+    Projeto: UrlParamsEnum.EditarProjeto,
+    Tarefa: UrlParamsEnum.EditarTarefa
+  }
+
+  const setEditar = () => {    
     params.delete(UrlParamsEnum.CriarTarefaPorPrj);
     params.delete(UrlParamsEnum.EditarCliente);
+    params.delete(UrlParamsEnum.EditarProjeto);
     params.delete(UrlParamsEnum.EditarTarefa);
-    params.set(UrlParamsEnum.EditarProjeto, prjId.toString());
+    params.set(entidades[entidade], id.toString())
     replace(`${pathname}?${params.toString()}`);
   };
   return (
-    <Tooltip title="Projeto">
-      <IconButton aria-label="editar projeto" size="small" onClick={setEditarPrj}>
+    <Tooltip title={entidade}>
+      <IconButton size="small" onClick={setEditar}>
         <EditIcon />
       </IconButton>
     </Tooltip>

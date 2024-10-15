@@ -15,7 +15,7 @@ export default function Home() {
           height={38}
           priority
         />
-        <Link href="/tarefa">
+        <Link href="/tarefas">
         <Button variant="contained">Tarefas</Button>
         </Link>
       </main>

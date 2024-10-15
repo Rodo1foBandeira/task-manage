@@ -1,7 +1,7 @@
 import { ReadonlyURLSearchParams } from "next/navigation";
 import { ISearchParams, ITarefasExpandidas } from "./ISearchParams";
 
-export function tarefasExpandidas(searchParams?: ISearchParams["searchParams"] | ReadonlyURLSearchParams) {
+export function tarefasExpandidas(searchParams?: ISearchParams | ReadonlyURLSearchParams) {
     const tarefasExpandidas: ITarefasExpandidas = {};
 
     if (searchParams) {

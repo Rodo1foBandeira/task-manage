@@ -9,7 +9,7 @@ import { revalidateTag } from "next/cache";
 const criarComTransacao = async ( email: string, nome: string) => {
   const transaction = await sequelize.transaction();
   try {
-    const usuario = await sequelize.Usuario.create({ nome, email });
+    const usuario = await sequelize.models.Usuario.create({ nome, email });
     await transaction.commit();
     revalidateTag(RevalTagsEnum.Usuarios);
     return usuario;
@@ -23,7 +23,7 @@ const criarComTransacao = async ( email: string, nome: string) => {
 export async function encontrarOuCriar(email: string, nome?: string, criar?: boolean) {
   const result = await cacheObj<IUsuarioProps>(
     () =>
-      sequelize.Usuario.findOne({
+      sequelize.models.Usuario.findOne({
         where: { email },
       }),
     ["actionsUsuario.encontrarOuCriar", email],
@@ -32,11 +32,6 @@ export async function encontrarOuCriar(email: string, nome?: string, criar?: boo
   if (result) {
     return result;
   } else if (criar && nome) {
-    // const usuario = await cacheObj<IUsuarioProps>(
-    //   () => criarComTransacao(email, nome),
-    //   ["actionsUsuario.criarComTransacao", email],
-    //   {}
-    // );
     const usuario = await criarComTransacao(email, nome);
     return usuario;
   }

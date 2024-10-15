@@ -1,11 +1,13 @@
 import { unstable_cache } from "next/cache";
+import { Model } from "sequelize";
 import { deserialize, serialize } from "superjson";
 
-export async function cacheList<T>(query: () => Promise<T[]>, keys: Parameters<typeof unstable_cache>[1], opts: Parameters<typeof unstable_cache>[2]): Promise<T[]> {
+export async function cacheList<T>(query: () => Promise<Model<any, any>[]>, keys: Parameters<typeof unstable_cache>[1], opts: Parameters<typeof unstable_cache>[2]): Promise<T[]> {
   const cached = unstable_cache(
     async () => {
-      const result = (await query()).map((x) => (x as any).get({ plain: true })) as T[];
-      return serialize(result);
+      // Converte cada resultado para um objeto plano (JSON)
+      const result = (await query()).map((x) => x.get({ plain: true })) as T[];
+      return serialize(result); // Serialização antes de cachear
     },
     keys,
     opts
@@ -13,16 +15,19 @@ export async function cacheList<T>(query: () => Promise<T[]>, keys: Parameters<t
 
   const { json, meta } = await cached();
 
+  // Deserializa o cache para retornar o resultado tipado corretamente
   const result = deserialize<T[]>({ json, meta });
   return result;
 }
 
-export async function cacheObj<T>(query: () => Promise<T | null>, keys: Parameters<typeof unstable_cache>[1], opts: Parameters<typeof unstable_cache>[2]): Promise<T> {
+export async function cacheObj<T>(query: () => Promise<Model | null>, keys: Parameters<typeof unstable_cache>[1], opts: Parameters<typeof unstable_cache>[2]): Promise<T | null> {
   const cached = unstable_cache(
     async () => {
       const result = await query();
       if (result) {
-        return serialize((result as any).get({ plain: true }) as T);
+        // Converte para objeto plano se for um Model do Sequelize
+        const plainResult = (result as Model).get({ plain: true });
+        return serialize(plainResult) // Certifique-se de que o tipo final seja T
       }
       return null;
     },
@@ -36,7 +41,8 @@ export async function cacheObj<T>(query: () => Promise<T | null>, keys: Paramete
     const result = deserialize<T>({ json, meta });
     return result;
   }
-  return null as T;
+
+  return null;
 }
 
 // export const cache = async <T, P extends unknown[]>(

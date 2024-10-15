@@ -1,12 +1,13 @@
 "use server";
 
-import { IHistoricoProps } from "@/models/historico";
+import { IHistoricoInstance, IHistoricoProps } from "@/models/historico";
 import { cacheList, cacheObj } from "./utils";
 import sequelize from "@/models";
 import RevalTagsEnum from "../enums/RevalTagsEnum";
 import { revalidateTag } from "next/cache";
 import { getServerSession } from "next-auth";
 import authOptions from "@/authOptions";
+import { ModelAttributes } from "sequelize";
 
 export async function porTarefa(tarefaId: number) {
   const session = await getServerSession(authOptions);
@@ -17,7 +18,7 @@ export async function porTarefa(tarefaId: number) {
 
   const result = await cacheList<IHistoricoProps>(
     () =>
-      sequelize.Historico.findAll({
+      sequelize.models.Historico.findAll({
         where: {
           tarefa_id: tarefaId,
           usuario_id: session.id,
@@ -35,9 +36,11 @@ export async function get(id: number) {
   if (!session || !session.id) {
     throw new Error("Usuário não autenticado");
   }
-  const result = await cacheObj<IHistoricoProps>(() => sequelize.Historico.findOne({ where: { id, usuario_id: session.id } }), ["actionsHistorico.get", id.toString()], {
-    tags: [RevalTagsEnum.Historicos],
-  });
+  const result = await cacheObj<IHistoricoProps>(
+    () => sequelize.models.Historico.findOne({ where: { id, usuario_id: session.id } }),
+    ["actionsHistorico.get", id.toString()],
+    { tags: [RevalTagsEnum.Historicos]}
+  );
   return result;
 }
 
@@ -49,20 +52,9 @@ export async function criarEditar({ observacao, id, tarefa_id }: { observacao: s
   }
 
   if (id) {
-    await sequelize.Historico.update({ observacao }, { where: { id } });
+    await sequelize.models.Historico.update({ observacao }, { where: { id, usuario_id: session.id, } });
   } else {
-    await sequelize.Historico.create({ usuario_id: session.id, observacao, tarefa_id });
+    await sequelize.models.Historico.create({ usuario_id: session.id, observacao, tarefa_id: tarefa_id as number });
   }
-  revalidateTag(RevalTagsEnum.Historicos);
-}
-
-export async function excluir(id: number) {
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session?.id) {
-    throw new Error("Usuário não autenticado");
-  }
-
-  await sequelize.Historico.destroy({ where: { id, usuario_id: session.id } });
   revalidateTag(RevalTagsEnum.Historicos);
 }

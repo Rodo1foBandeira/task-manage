@@ -1,7 +1,7 @@
 "use client";
 import { IconButton, Tooltip } from "@mui/material";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import * as actionsHistorico from "@/lib/data/actionsHistorico";
+import * as actionsAbstratas from "@/lib/data/actionsAbstratas";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UrlParamsEnum } from "../ISearchParams";
 
@@ -12,7 +12,7 @@ export default function BtnExcluir({ tarefaId, historicoId, obs }: { tarefaId:nu
 
   const excluir = async () => {
     if (confirm(`Excluir ${obs}?`)) {
-      await actionsHistorico.excluir(historicoId);
+      await actionsAbstratas.excluir4Btn("Historico", historicoId);
       alert("Histórico excluído");
       const params = new URLSearchParams(searchParams);
       params.set(`${UrlParamsEnum.TarefasExpandidas}[${tarefaId}]`, 'true');

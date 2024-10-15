@@ -1,16 +1,18 @@
-import { DataTypes, Model, ModelAttributes } from "sequelize";
+import { DataTypes, Model, ModelAttributes, Optional } from "sequelize";
 import IBaseProps from "./IBaseProps";
 import { IProjetoInstance } from "./projeto";
 import { IUsuarioInstance } from "./usuario";
 
-export interface IClienteProps extends IBaseProps{
-  nome: string;
-  Projetos?: IProjetoInstance[];
-  Usuario?: IUsuarioInstance;
+export interface IClienteProps extends IBaseProps{  
+  Projetos: IProjetoInstance[];
+  Usuario: IUsuarioInstance;
 }
 
-export interface IClienteInstance extends IClienteProps, Model {}
+export interface IClienteCreationProps extends Optional<IClienteProps, "id" | "createdAt" | "updatedAt" | "Projetos" | "Usuario"> { }
 
-export const clienteModelOptions = {
+export interface IClienteInstance extends Model<IClienteProps, IClienteCreationProps>, IClienteProps { }
+
+export const clienteModelOptions: ModelAttributes<IClienteInstance, IClienteCreationProps> = {
   nome: DataTypes.STRING,
-} as ModelAttributes<IClienteInstance>;
+  usuario_id: DataTypes.NUMBER,
+};

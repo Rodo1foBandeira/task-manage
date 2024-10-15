@@ -10,7 +10,6 @@ const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
   ],
-  secret: process.env.AUTH_SECRET,
   callbacks: {
     async session({ session } : { session: Session}) {
       // Adiciona informações extras à sessão se necessário

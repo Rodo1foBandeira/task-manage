@@ -2,11 +2,11 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const protectedRoutes = ["/tarefa", "/api/utils"];
+const protectedRoutes = ["/tarefas", "/api/utils"];
 
 export async function middleware(req: NextRequest) {
   // Obter o token JWT de sessão
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
+  const token = await getToken({ req });
 
   // Verificar se o caminho atual é uma rota protegida
   const isProtectedRoute = protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route));
@@ -19,11 +19,8 @@ export async function middleware(req: NextRequest) {
   }
 
   const requestHeaders = new Headers(req.headers);
-  let pathname = req.nextUrl.href.split("?")[0];
-  pathname = pathname.substring(pathname.indexOf("://") + 3);
-  pathname = pathname.substring(pathname.indexOf("/"));
-  requestHeaders.set("pathname", pathname);
-  requestHeaders.set("searchParams", req.nextUrl.href.split("?")[1]);
+  const url = new URL(req.url);
+  requestHeaders.set("searchParams", url.searchParams.toString());
 
   const response = NextResponse.next({
     request: {

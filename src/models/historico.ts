@@ -1,14 +1,19 @@
-import { DataTypes, Model, ModelAttributes } from "sequelize";
+import { DataTypes, Model, ModelAttributes, Optional } from "sequelize";
 import IBaseProps from "./IBaseProps";
 import { ITarefaInstance } from "./tarefa";
 
-export interface IHistoricoProps extends IBaseProps {
+export interface IHistoricoProps extends Omit<IBaseProps, "nome"> {
   observacao: string;
-  Tarefa?: ITarefaInstance;
+  tarefa_id: number;
+  Tarefa: ITarefaInstance;
 }
 
-export interface IHistoricoInstance extends IHistoricoProps, Model {}
+export interface IHistoricoCreationProps extends Optional<IHistoricoProps, "id" | "createdAt" | "updatedAt" | "Tarefa"> { }
 
-export const historicoModelOptios = {
+export interface IHistoricoInstance extends Model<IHistoricoProps, IHistoricoCreationProps>, IHistoricoProps { }
+
+export const historicoModelOptions: ModelAttributes<IHistoricoInstance, IHistoricoCreationProps> = {
   observacao: DataTypes.STRING,
-} as ModelAttributes<IHistoricoInstance>;
+  tarefa_id: DataTypes.NUMBER,
+  usuario_id: DataTypes.NUMBER,
+};

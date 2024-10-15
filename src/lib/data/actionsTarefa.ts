@@ -4,22 +4,31 @@ import sequelize from "@/models";
 import { ITarefaProps } from "@/models/tarefa";
 import { cacheObj } from "./utils";
 import RevalTagsEnum from "../enums/RevalTagsEnum";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import authOptions from "@/authOptions";
+import IFormTarefaCriar from "../forms/interfaces/IFormTarefaCriar";
+import { IClienteProps } from "@/models/cliente";
 
 export async function comProjetoComCliente(tarefaId: number) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session?.id) {
+    throw new Error("Usuário não autenticado");
+  }
+
   const result = await cacheObj<ITarefaProps>(
     () =>
-      sequelize.Tarefa.findByPk(tarefaId, {
+      sequelize.models.Tarefa.findOne({
+        where: { id: tarefaId, usuario_id: session.id },
         include: [
           {
-            model: sequelize.Projeto,
+            model: sequelize.models.Projeto,
             as: "Projeto",
             include: [
               {
-                model: sequelize.Cliente,
+                model: sequelize.models.Cliente,
                 as: "Cliente",
               },
             ],
@@ -32,50 +41,53 @@ export async function comProjetoComCliente(tarefaId: number) {
   return result;
 }
 
-export async function criar(formData: FormData, redirectUrl?: string) {
+export async function criar(form: IFormTarefaCriar, revalPath?: string) {
   const session = await getServerSession(authOptions);
   
   if (!session || !session?.id) {
     throw new Error("Usuário não autenticado");
   }
 
-  let persistiu = false;
-  if (formData.get("tarefa.id")) {
+  let revalidateTagClientes = false;
+  let revalidateTagProjetos = false;
+  let revalidateTagTarefas = false;
+  if (form.tarefa.id) {
     // Edita somente tarefa
-    sequelize.Tarefa.update({ nome: formData.get("tarefa.nome") }, { where: { id: formData.get("tarefa.id") } });
-    persistiu = true;
+    sequelize.models.Tarefa.update(
+      { nome: form.tarefa.nome },
+      { where: { id: form.tarefa.id, usuario_id: session.id } }
+    );
+    revalidateTagTarefas = true;
   } else {
     // Cria tarefa. Edita ou cria Cliente ou Prj
     // const cliente = {
     //   id: Number(formData.get("cliente.id")?.toString()),
     //   nome: formData.get("cliente.nome")?.toString() || ""
-    // }; 
-    let clienteId = Number(formData.get("cliente.id")?.toString());
-    if (!clienteId){
-      const nome = formData.get("cliente.nome")?.toString() || "";
-      const cliente = await sequelize.Cliente.create({ nome, usuario_id: session.id });
-      clienteId = cliente.id;
-      revalidateTag(RevalTagsEnum.Clientes);
-    }
+    // };
     
-    let projetoId = Number(formData.get("projeto.id")?.toString());
-    if (!projetoId){
-      const nome = formData.get("projeto.nome")?.toString() || "";
-      const projeto = await sequelize.Projeto.create({ nome, cliente_id: clienteId, usuario_id: session.id });
-      projetoId = projeto.id;
-      revalidateTag(RevalTagsEnum.Projetos);
+    if (!form.cliente?.id){
+      const cliente = await sequelize.models.Cliente.create(
+        { nome: form.cliente?.nome as string, usuario_id: session.id }
+      );
+      form.cliente = cliente;
+      revalidateTagClientes = true;      
     }
-    const nome = formData.get("tarefa.nome")?.toString() || "";
-    const tarefa = await sequelize.Tarefa.create({ nome, projeto_id: projetoId, usuario_id: session.id })
-    persistiu = true;
+    if (!form.projeto?.id){
+      const projeto = await sequelize.models.Projeto.create(
+        { nome: form.projeto?.nome as string, cliente_id: form.cliente.id as number, usuario_id: session.id }
+      );
+      form.projeto = projeto;
+      revalidateTagProjetos = true;
+    }
+    const tarefa = await sequelize.models.Tarefa.create(
+      { nome: form.tarefa.nome, projeto_id: form.projeto.id as number, usuario_id: session.id }
+    )
+    revalidateTagTarefas = true;
   }
-  if (persistiu) {
+  if (revalidateTagClientes) revalidateTag(RevalTagsEnum.Clientes);
+  if (revalidateTagProjetos) revalidateTag(RevalTagsEnum.Projetos);
+  if (revalidateTagTarefas) {
     revalidateTag(RevalTagsEnum.Tarefas);
-    if (redirectUrl) redirect(redirectUrl);
+    if (revalPath) revalidatePath(revalPath);
   }
-}
-
-export async function excluir(tarefaId: number) {
-  await sequelize.Tarefa.destroy({ where: { id: tarefaId }, cascade: true});
-  revalidateTag(RevalTagsEnum.Tarefas);
 }

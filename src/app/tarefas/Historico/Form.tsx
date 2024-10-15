@@ -27,7 +27,8 @@ export default function Form({ tarefaId }: { tarefaId: number }) {
       if (tarefasExpandidasParams[tarefaId] !== true && tarefasExpandidasParams[tarefaId] > 0) {
         setLoading(true);
         const historico = await actionsHistorico.get(tarefasExpandidasParams[tarefaId])
-        setObs({ id: historico.id, observacao: historico.observacao });
+        if (historico)
+          setObs({ id: historico.id, observacao: historico.observacao });
         setLoading(false);
       } else {
         setObs({ id: undefined, observacao: "" });

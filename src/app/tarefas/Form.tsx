@@ -24,18 +24,18 @@ export default function Form() {
   const [loading, setLoading] = useState(false);
 
   const pathname = usePathname();
-  const { replace } = useRouter();
+  const { replace, push } = useRouter();
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams);
 
-  const urlParams: ISearchParams["searchParams"] = {
+  const urlParams: ISearchParams = {
     criarTarefaPorPrj: Number(params.get(UrlParamsEnum.CriarTarefaPorPrj)),
     editarTarefa: Number(params.get(UrlParamsEnum.EditarTarefa)),
     editarProjeto: Number(params.get(UrlParamsEnum.EditarProjeto)),
     editarCliente: Number(params.get(UrlParamsEnum.EditarCliente)),
   };
 
-  const [previousParams, setPreviousParams] = useState<ISearchParams["searchParams"]>({});
+  const [previousParams, setPreviousParams] = useState<ISearchParams>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,25 +45,37 @@ export default function Form() {
       if (urlParams.criarTarefaPorPrj) {
         // Para criar tarefa com cliente e projeto selecionado
         // deve bloquear autocomplete de cliente e projeto
-        const projeto = (await actionsProjeto.comCliente(urlParams.criarTarefaPorPrj)) as IProjetoProps;
-        setProjetos([projeto as IOption]);
-        setProjeto(projeto as IOption);
-        setClientes([projeto.Cliente as IOption]);
-        setCliente(projeto.Cliente as IOption);
+        const _projeto = (await actionsProjeto.comCliente(urlParams.criarTarefaPorPrj)) as IProjetoProps;
+        setProjetos([_projeto as IOption]);
+        setProjeto(_projeto as IOption);
+        setClientes([_projeto.Cliente as IOption]);
+        setCliente(_projeto.Cliente as IOption);
       } else if (urlParams.editarTarefa) {
         // Para editar tarefa
         // deve buscar a tarefa com projeto e cliente
         // deve bloquear autocomplete de cliente e projeto
         const _tarefa = await actionsTarefa.comProjetoComCliente(urlParams.editarTarefa);
-        setClientes([_tarefa?.Projeto?.Cliente as IOption]);
-        setCliente(_tarefa?.Projeto?.Cliente as IOption);
-        setProjetos([_tarefa?.Projeto as IOption]);
-        setProjeto(_tarefa?.Projeto as IOption);
-        setTarefa(_tarefa as IOption);
+        if (_tarefa){
+          setClientes([_tarefa.Projeto?.Cliente as IOption]);
+          setCliente(_tarefa.Projeto?.Cliente as IOption);
+          setProjetos([_tarefa.Projeto as IOption]);
+          setProjeto(_tarefa.Projeto as IOption);
+          setTarefa(_tarefa as IOption);
+        }        
       } else if (urlParams.editarProjeto) {
-        // Lógica para editar projeto
+        const _prj = await actionsProjeto.get(urlParams.editarProjeto);
+        setProjetos([_prj as IOption]);
+        setProjeto(_prj as IOption);
+        setTarefa({ nome: "" });
+        setClientes([]);
+        setCliente({ nome: "" });
       } else if (urlParams.editarCliente) {
-        // Lógica para editar cliente
+        const _cli = await actionsCliente.get(urlParams.editarCliente);
+        setClientes([_cli as IOption]);
+        setCliente(_cli as IOption);
+        setTarefa({ nome: "" });
+        setProjetos([]);
+        setProjeto({ nome: "" });
       } else {
         setClientes(await actionsCliente.todos());
       }
@@ -93,25 +105,37 @@ export default function Form() {
     }
   };
 
-  const desabilitaAutocomplete = () => {
-    if (urlParams.criarTarefaPorPrj && urlParams.criarTarefaPorPrj > 0) {
-      // Para criar tarefa com cliente e projeto selecionado
-      // deve bloquear autocomplete de cliente e projeto
-      return true;
-    }
-    if (urlParams.editarTarefa && urlParams.editarTarefa > 0) {
-      // Para editar tarefa
-      // deve buscar a tarefa com projeto e cliente
-      // deve bloquear autocomplete de cliente e projeto
-      return true;
-    }
+  const desabilitaCampoCliente = () => {
+    if (urlParams.editarProjeto) return true;
+    if (urlParams.criarTarefaPorPrj) return true;
+    if (urlParams.editarTarefa) return true;
+    return false;
+  };
+
+  const desabilitaCampoProjeto = () => {
+    if (urlParams.editarCliente) return true;
+    if (urlParams.criarTarefaPorPrj) return true;
+    if (urlParams.editarTarefa) return true;
+    return false;
+  };
+
+  const desabilitaCampoTarefa = () => {
+    if (urlParams.editarCliente) return true;
+    if (urlParams.editarProjeto) return true;
     return false;
   };
 
   const desabilitaEnvio = () => {
-    if (!cliente.id && cliente.nome.length === 0) return true;
-    if (!projeto.id && projeto.nome.length === 0) return true;
-    if (tarefa.nome.length === 0) return true;
+    if (urlParams.editarCliente){
+      if (!cliente.id && cliente.nome.length === 0) return true;
+    } else if (urlParams.editarProjeto) {
+      if (!projeto.id && projeto.nome.length === 0) return true;
+    } else {
+      // Se não estou editando cliente nem prj então estou editando ou criando tarefa
+      if (!cliente.id && cliente.nome.length === 0) return true;
+      if (!projeto.id && projeto.nome.length === 0) return true;
+      if (tarefa.nome.length === 0) return true;
+    }    
     return false;
   };
 
@@ -121,38 +145,37 @@ export default function Form() {
     setProjetos(projetos as IOption[]);
     setLoading(false);
   };
-  useEffect(() => {
-    if (cliente.id) {
-      fetchSetProjetosPorCliente(cliente.id);
-    } else {
-      setProjeto({ id: undefined, nome: ""})
-      setProjetos([]);
-    }
-  }, [cliente]);
 
-  const resetForm = () => {
+  useEffect(() => {
+    if (!(urlParams.criarTarefaPorPrj || urlParams.editarCliente || urlParams.editarProjeto || urlParams.editarTarefa)){
+      if (cliente.id) {
+        fetchSetProjetosPorCliente(cliente.id);
+      } else {
+        setProjeto({ id: undefined, nome: ""})
+        setProjetos([]);
+      }
+    }    
+  }, [cliente, urlParams.criarTarefaPorPrj, urlParams.editarCliente, urlParams.editarProjeto, urlParams.editarTarefa]);
+
+  const resetForm = async () => {
     setCliente({ id: undefined, nome: "" });
     setProjetos([]);
     setProjeto({ id: undefined, nome: "" });
     setTarefa({ id: undefined, nome: "" });
+    setClientes(await actionsCliente.todos());
   };
 
   const handleAction = async (event: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
     setLoading(true);
-    const form = new FormData();
-    form.append("tarefa.nome", tarefa.nome);
-    if (tarefa.id) form.append("tarefa.id", tarefa.id?.toString());
-    else {
-      if (projeto.id) form.append("projeto.id", projeto.id?.toString());
-      else form.append("projeto.nome", projeto.nome);
-      if (cliente.id) form.append("cliente.id", cliente.id?.toString());
-      else form.append("cliente.nome", cliente.nome);
-    }    
-    await actionsTarefa.criar(form);
+    await actionsTarefa.criar({
+      tarefa,
+      cliente,
+      projeto
+    });
     limparCancelar();
     setLoading(false);
-    //router.push("/tarefa")
+    // push("/tarefas")
   };
 
   const desabilitaCancelar = () => {
@@ -171,7 +194,23 @@ export default function Form() {
   const labelEnvio = () => (urlParams?.editarCliente || urlParams?.editarProjeto || urlParams?.editarTarefa)
     ? "Salvar" : "Criar";
 
-  const autocompleteLabel = (option: IOption, entidade: string, ) => option.id ? `${entidade} selecionado` : `Novo ${entidade}`;
+  interface IEntidade {
+    option: IOption;
+    editando?: number;
+  }
+
+  const entidades: Record<string, IEntidade> = {
+    Cliente: {
+      option: cliente,
+      editando: urlParams.editarCliente
+    },
+    Projeto: {
+      option: projeto,
+      editando: urlParams.editarProjeto
+    }
+  }
+
+  const autocompleteLabel = (entidade: "Cliente" | "Projeto"): string => entidades[entidade].editando ? `Editar ${entidade}` : entidades[entidade].option.id ? `${entidade} selecionado` : `Novo ${entidade}`;
 
   return (
     <form onSubmit={handleAction}>
@@ -189,10 +228,10 @@ export default function Form() {
               }
               return option.nome; // Para suportar opções de objetos
             }}
-            renderInput={(params) => <TextField {...params} label={autocompleteLabel(cliente, "Cliente")} />}
+            renderInput={(params) => <TextField {...params} label={autocompleteLabel("Cliente")} />}
             onChange={(e, v) => handleChange(e, v, setCliente)}
             onBlur={(e) => handleBlur(e as FocusEvent<HTMLInputElement>, setCliente, cliente)}
-            disabled={desabilitaAutocomplete()}
+            disabled={desabilitaCampoCliente()}
           />
         </Grid2>
         <Grid2 size={2}>
@@ -207,16 +246,16 @@ export default function Form() {
               }
               return option.nome; // Para suportar opções de objetos
             }}
-            renderInput={(params) => <TextField {...params} label={autocompleteLabel(projeto, "Projeto")} />}
+            renderInput={(params) => <TextField {...params} label={autocompleteLabel("Projeto")} />}
             onChange={(e, v) => handleChange(e, v, setProjeto)}
             onBlur={(e) => handleBlur(e as FocusEvent<HTMLInputElement>, setProjeto, projeto)}
-            disabled={desabilitaAutocomplete()}
+            disabled={desabilitaCampoProjeto()}
           />
         </Grid2>
-        <Grid2 size={2}>
-          <TextField fullWidth size="small" value={tarefa.nome} onChange={(e) => setTarefa((t) => ({ ...t, nome: e.target.value }))} label={(tarefa.id ? "Editar " : "Nova ") + "Tarefa"} />
+        <Grid2 size={5}>
+          <TextField disabled={desabilitaCampoTarefa()} fullWidth size="small" value={tarefa.nome} onChange={(e) => setTarefa((t) => ({ ...t, nome: e.target.value }))} label={(tarefa.id ? "Editar" : "Nova") + " Tarefa"} />
         </Grid2>
-        <Grid2 size={4}>
+        <Grid2 size={2}>
           <IconButton sx={{ marginRight: 2 }} color="error" disabled={desabilitaCancelar()} onClick={limparCancelar}>
             <ClearIcon />
           </IconButton>

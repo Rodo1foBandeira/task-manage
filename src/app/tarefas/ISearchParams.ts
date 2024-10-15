@@ -4,14 +4,16 @@ export interface ITarefasExpandidas{
 }
 
 export interface ISearchParams {
-  searchParams?: {
     tarsExps?: ITarefasExpandidas; // ?tarsExps[3]=1 nextjs não preenche
     //[key: string]: any;
     editarCliente?: number;
     criarTarefaPorPrj?: number;
     editarProjeto?: number;
     editarTarefa?: number;
-  };
+}
+
+export interface IPageSearchParams {
+  searchparams?: ISearchParams
 }
 
 export enum UrlParamsEnum {
