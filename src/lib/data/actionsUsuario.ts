@@ -32,7 +32,8 @@ export async function encontrarOuCriar(email: string, nome?: string, criar?: boo
   if (result) {
     return result;
   } else if (criar && nome) {
-    const usuario = await criarComTransacao(email, nome);
+    const usuario = await sequelize.models.Usuario.create({ email, nome });
+    revalidateTag(RevalTagsEnum.Usuarios);
     return usuario;
   }
 }
